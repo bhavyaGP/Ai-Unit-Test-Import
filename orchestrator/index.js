@@ -5,7 +5,7 @@
 // const { getGitDiff } = require('../change-detector');
 // const { analyzeFileChange } = require('../analyzer');
 // const { generateTestsForImpacted } = require('../test-generator-agent');
-const { runForFile, MutationAgent } = require('../langgraph_workflow_local');
+// const { runForFile, MutationAgent } = require('../langgraph_workflow_local');
 // const { saveTestSnippet, findTestPathForSource } = require('../test-saver');
 // const { runTestsAndGetCoverage } = require('../runner');
 // const { createBranchAndCommit, createPullRequest } = require('../git-ops');
@@ -21,9 +21,10 @@ const { saveTestSnippet, findTestPathForSource } = require('../test-saver');
 const { runTestsAndGetCoverage } = require('../runner');
 const { createBranchAndCommit, createPullRequest } = require('../git-ops');
 const { mutateAndGenerate } = require('../mutation-agent');
+const { parseSourceToAST, extractTopLevelFunctionsAndExports } = require('../analyzer');
 
-async function orchestrate({ prevCommit, currCommit, cwd, firstTime = false }) {
-  const changes = await getGitDiff(prevCommit, currCommit, { cwd });
+async function orchestrate({ prevCommit, currCommit, cwd, firstTime = false, workingChanges = false }) {
+  const changes = await getGitDiff(prevCommit, currCommit, { cwd, workingChanges });
 
   if (firstTime) {
     // find all .js files under cwd/src
@@ -56,6 +57,14 @@ async function orchestrate({ prevCommit, currCommit, cwd, firstTime = false }) {
       continue;
     }
     const analysis = analyzeFileChange(c.filePath, c.diff, cwd);
+    
+    // For working changes, if no impacted nodes found but file has content, treat all nodes as impacted
+    if (workingChanges && (!analysis.impacted || analysis.impacted.length === 0) && analysis.currentSource) {
+      const ast = parseSourceToAST(analysis.currentSource);
+      const allNodes = extractTopLevelFunctionsAndExports(ast);
+      analysis.impacted = allNodes;
+    }
+    
     if (analysis.impacted && analysis.impacted.length) impactedSpecs.push(analysis);
   }
 

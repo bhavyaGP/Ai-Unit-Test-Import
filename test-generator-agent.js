@@ -39,28 +39,41 @@ Requirements:
 // Ollama-local call implementation (calls http://localhost:11434/api/generate)
 // Works with codellama:7b-instruct-q4_K_M served by Ollama locally
 async function callLLM(prompt, opts = {}) {
-  const model = opts.model || process.env.LLM_MODEL || 'codellama:7b-instruct-q4_K_M';
+  const model = opts.model || process.env.LLM_MODEL || 'wizardcoder:latest';
   const endpoint = process.env.OLLAMA_ENDPOINT || 'http://localhost:11434/api/generate';
+  const body = { model, prompt, stream: false };
+  if (opts.temperature != null) body.temperature = opts.temperature;
+  if (opts.max_tokens != null) body.max_tokens = opts.max_tokens;
   try {
-    const res = await axios.post(endpoint, {
-      model,
-      prompt,
-      stream: false
-    }, { timeout: opts.timeout || 120000 });
-    // Ollama responses vary; look for res.data.response or res.data.results
-    if (res.data) {
-      if (res.data.response) return res.data.response;
-      if (res.data.results && Array.isArray(res.data.results) && res.data.results.length) {
-        // Some Ollama wrappers return results array with content
-        const r = res.data.results[0];
-        if (r && (r.content || r.output)) return r.content || r.output;
-      }
-      // fallback: stringify body
-      return typeof res.data === 'string' ? res.data : JSON.stringify(res.data);
+    const res = await axios.post(endpoint, body, { timeout: 50 * 60 * 1000 }); 
+    const data = res && res.data;
+    if (!data) return '';
+
+    // Ollama / wrapper variations
+    if (typeof data === 'string') return data;
+    if (data.response) return data.response;
+    if (data.output) return data.output;
+    if (data.results && Array.isArray(data.results) && data.results.length) {
+      const r = data.results[0];
+      if (r && (r.content || r.output)) return r.content || r.output;
     }
-    return '';
+    // OpenAI-style choices
+    if (data.choices && Array.isArray(data.choices) && data.choices.length) {
+      const c = data.choices[0];
+      if (c.text) return c.text;
+      if (c.message) return c.message.content || JSON.stringify(c.message);
+    }
+    // Some endpoints return an array
+    if (Array.isArray(data) && data.length) {
+      const first = data[0];
+      if (typeof first === 'string') return first;
+      if (first.content) return first.content;
+      if (first.output) return first.output;
+    }
+    // fallback: stringify
+    return JSON.stringify(data);
   } catch (err) {
-    console.error('❌ Ollama call failed:', err.message);
+    console.error('❌ Ollama call failed:', err.message || err);
     throw err;
   }
 }

@@ -3,6 +3,7 @@
 // Usage:
 // node cli.js --bootstrap
 // node cli.js --prev <sha> --curr <sha>
+// node cli.js --working (for uncommitted changes)
 
 const { orchestrate } = require('./orchestrator/index');
 const path = require('path');
@@ -14,6 +15,11 @@ if (args.includes('--bootstrap')) {
   (async () => {
     const res = await orchestrate({ prevCommit: '', currCommit: '', cwd, firstTime: true });
     console.log('Bootstrap result:', res);
+  })();
+} else if (args.includes('--working')) {
+  (async () => {
+    const res = await orchestrate({ prevCommit: '', currCommit: '', cwd, firstTime: false, workingChanges: true });
+    console.log('Working changes result:', res);
   })();
 } else {
   const prevIndex = args.indexOf('--prev');

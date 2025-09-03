@@ -40,6 +40,11 @@ function extractTopLevelFunctionsAndExports(ast) {
 }
 
 function analyzeFileChange(filePath, diff, cwd) {
+  // Only analyze JavaScript files
+  if (!filePath.endsWith('.js')) {
+    return { filePath, impacted: [], changedRanges: [], currentSource: '' };
+  }
+
   const changedRanges = [];
   const regex = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/gm;
   let m;

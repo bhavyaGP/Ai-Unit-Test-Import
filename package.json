@@ -1,0 +1,26 @@
+{
+  "name": "ai-test-generator-example",
+  "version": "0.1.0",
+  "description": "Example repo for AI unit test generator (Node.js).",
+  "main": "orchestrator/index.js",
+  "scripts": {
+    "test": "jest --coverage --runInBand || true",
+    "start": "node cli.js"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "nyc": "^15.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/register": "^7.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.0.0",
+    "langgraph": "^1.0.0",
+    "recast": "^0.20.5",
+    "@babel/parser": "^7.21.3",
+    "simple-git": "^3.16.0",
+    "@octokit/rest": "^20.0.0",
+    "shelljs": "^0.8.5"
+  }
+}

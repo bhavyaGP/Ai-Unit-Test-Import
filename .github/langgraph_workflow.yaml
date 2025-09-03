@@ -1,0 +1,25 @@
+# Example LangGraph workflow sample (conceptual)
+# Replace with the SDK/workflow format your LangGraph installation expects.
+workflows:
+  - name: test-generation
+    agents:
+      - name: test_generator
+        model: ${LLM_MODEL}
+        max_tokens: 1024
+        temperature: 0.0
+        input_schema:
+          filePath: string
+          node: object
+          source: string
+        output_schema:
+          testCode: string
+      - name: mutation_agent
+        model: ${LLM_MODEL}
+        max_tokens: 1024
+        temperature: 0.0
+        input_schema:
+          filePath: string
+          coverage: number
+        output_schema:
+          testCode: string
+    description: "Minimal example workflow - adapt to your LangGraph installation"

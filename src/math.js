@@ -9,5 +9,8 @@ function multiply(a, b) {
   const result = a * b;
   return Object.is(result, -0) ? 0 : result; // convert -0 to 0
 }
+function subtraction(a,b){
+  return a - b;
+}
 
-module.exports = { add, multiply };
+module.exports = { add, multiply, subtraction };
